@@ -1,0 +1,65 @@
+/* ====== GENERAL CONFIG ====== */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+
+}
+
+html { height:100%; }
+
+body { height: 100%; }
+
+/* ====== SIGMA AREA CONTAINER ====== */
+
+#sigma-container {
+    display: none;
+    width: 70%;
+    height: 50%;
+    background-color: #fff;
+    margin: 0 auto 50px;
+}
+
+/* ====== VUE ELEMENT INSTANCE ====== */
+
+#app {
+    padding: 50px;
+}
+
+form {
+    padding: 0 50px;
+}
+
+.add-controls {
+    display: flex;
+    align-items: center;
+}
+
+.btn-label {
+    position: relative;
+    left: -12px;
+    display: inline-block;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 3px 0 0 3px;
+}
+
+.btn-labeled {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.btn {
+    margin-bottom:10px;
+}
+
+#arrow {
+    text-align: center;
+    font-size: 32px;
+    line-height: 98px;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.list-group {
+    max-width: 70% !important;
+}

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tree Grammar Construction</title>
+
+    <!-- VUE LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- SIGMA LIBRARY -->
+    <script src="assets/scripts/sigma/build/sigma.min.js"></script>
+    <!-- BOOTSTRAP CSS LIBRARY -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- FONT AWESOME CSS LIBRARY -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- LOCAL CSS FILE -->
+    <link rel="stylesheet" href="./assets/stylesheet.css">
+</head>
+<body>
+    <!-- VUE ELEMENT INSTANCE -->
+    <div id="app">
+        <div id="intro" v-if="redirect">
+            <!-- PRINCIPAL APP DESCRIPTION -->
+            <div style="padding: 0 50px;">
+                <h3>Arbol de derivacion</h3>
+                <ol>
+                    <li>Digita los simbolos terminales y no terminales, denotalos con minusculas y mayusculas
+                        respectivamente. El simbolo de {{ lambda }} representalo con una "v".
+                    </li>
+                    <li>En las reglas de produccion, para los simbolos no terminales no uses espacios y utiliza el
+                        simbolo "|" para separar cada simbolo.
+                    </li>
+                    <li>Por ultimo selecciona el simbolo inicial axiomatico y genera el grafo de la gramatica ingresada.</li>
+                    <li>Recuerda que para mejor visualizacion de la aplicacion, debes ingresar por lo menos 2 simbolos terminales, 3 no terminales y 3 producciones.</li>
+                </ol>
+            </div>
+
+            <br>
+
+            <!-- FORM CARD AREA -->
+            <div class="card">
+                <div class="card-header">
+                    {{ title }}
+                </div>
+                <div class="card-body">
+                    <form>
+                        <!-- TERMINAL & NON-TERMINAL SYMBOLS SECTION -->
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="nonTerminalInput">Simbolos no terminales</label>
+                                            <input type="text" class="form-control" v-model="nonTerminal" id="nonTerminalInput" aria-describedby="nonTerminalHelp" placeholder="Ingresa un simbolo" maxlength="1" @keypress="validateInput">
+                                            <small id="nonTerminalHelp" class="form-text text-muted">Por favor ingresa solo mayusculas.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 add-controls">
+                                        <button type="button" class="btn btn-labeled btn-primary" @click="addNonTerminal" :disabled="nonTerminal === ''">
+                                            <span class="btn-label"><i class="fa fa-plus"></i></span>
+                                            {{ add }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <ul class="list-group">
+                                    <li class="list-group-item disabled" v-for="(symbol, index) in nonTerminalSymbols" :key="index">{{ symbol }}</li>
+                                </ul>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="terminalInput">Simbolos terminales</label>
+                                            <input type="text" class="form-control" v-model="terminal" id="terminalInput" aria-describedby="terminalHelp" placeholder="Ingresa un simbolo" maxlength="1" @keypress="validateInput">
+                                            <small id="terminalHelp" class="form-text text-muted">Por favor ingresa solo minusculas.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 add-controls">
+                                        <button type="button" class="btn btn-labeled btn-primary" @click="addTerminal" :disabled="terminal === ''">
+                                            <span class="btn-label"><i class="fa fa-plus"></i></span>
+                                            {{ add }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <ul class="list-group">
+                                    <li class="list-group-item disabled" v-for="(symbol, index) in terminalSymbols" :key="index">{{ symbol }}</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <br><hr><br>
+
+                        <!-- PRODUCTION RULES SECTION -->
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="form-group">
+                                    <label for="rulesSelect">Reglas de produccion</label>
+                                    <select class="form-control" v-model="ruleSource" id="rulesSelect" :disabled="disableSelect">
+                                        <option v-for="(symbol, index) in nonTerminalSymbols" :key="index">{{ symbol }}</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="arrow" class="col-1"><span>{{ arrow }}</span></div>
+
+                            <div class="col-5">
+                                <label for="rulesInput">Produccion</label>
+                                <input type="text" class="form-control" v-model="ruleTarget" id="rulesInput" aria-describedby="ruleHelp" placeholder="Ingresa una regla" :disabled="disableProduction" @keypress="validateInput">
+                                <small id="ruleHelp" class="form-text text-muted" v-if="!validRule" style="color: #dc3545 !important;">Debes ingresar solo simbolos contenidos en los simbolos terminales o no terminales que declaraste.</small>
+                            </div>
+
+                            <div class="col-3 add-controls">
+                                <button type="button" class="btn btn-labeled btn-primary" @click="addProductionRule" :disabled="ruleSource === '' || ruleTarget ===''">
+                                    <span class="btn-label"><i class="fa fa-plus"></i></span>
+                                    {{ add }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <ul class="list-group">
+                            <li class="list-group-item disabled" v-for="(rule, index) in productionRules" :key="index">{{ rule.source }} {{ arrow }} {{ rule.target }}</li>
+                        </ul>
+
+                        <br><hr><br>
+
+                        <!-- INITIAL SYMBOLS SECTION -->
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label for="initialSymbol">Simbolo inicial axiomatico</label>
+                                    <select class="form-control" v-model="initialSymbol" id="initialSymbol" :disabled="disableSelect" @change="validateSubmit">
+                                        <option v-for="(symbol, index) in nonTerminalSymbols" :key="index">{{ symbol }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <button class="btn btn-primary" onclick="init()" :disabled="!validSubmit">Generar Arbol</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TREE VISUALIZATION CARD SECTION -->
+        <div id="tree-area" v-if="!redirect">
+            <div class="card">
+                <div class="card-header">
+                    Valida una palabra de tu gramatica
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label for="wordInput">Valida alguna palabra</label>
+                                <input type="text" class="form-control" v-model="wordInput" id="wordInput" placeholder="Ingresa tu palabra" @keypress="validateInput">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 id="wordValidation" style="text-align: center; margin: 30px 0;" v-if="validWord">{{ wordValidate }}</h5>
+
+                    <br>
+
+                    <div style="float: right;">
+                        <button class="btn btn-link" @click="cleanGrammar">Introduce otra gramatica</button>
+                        <button class="btn btn-primary" @click="isValidWord">Valida tu palabra</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIGMA AREA CONTAINER -->
+    <div id="sigma-container"></div>
+
+    <!-- LOCAL JS FILE -->
+    <script src="./index.js"></script>
+    <!-- BOOTSTRAP JS DEPENDENCIES -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
